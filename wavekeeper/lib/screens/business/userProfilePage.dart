@@ -70,7 +70,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           icon: const Icon(Icons.arrow_back_rounded,
               color: Colors.white, size: 25.0),
           onPressed: () {
-            Navigator.pushReplacement(
+            Navigator.pop(
               context,
               MaterialPageRoute(
                 builder: (context) => BottomNavBar(

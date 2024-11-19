@@ -77,6 +77,7 @@ class SongCard extends StatelessWidget {
           'status': true,
           'realizada_em': now,
           'contrato': contrato,
+          'id_vendedor':vendedorId
         }).eq('id', transactionId);
 
         // 5. Transferir posse da obra para o comprador

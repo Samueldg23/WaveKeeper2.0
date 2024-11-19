@@ -1,5 +1,10 @@
-import 'package:flutter/material.dart';
+import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:wavekeeper/models/exceptionDialog.dart';
 class UserMusicCard extends StatelessWidget {
   final int id;
   final String imageUrl;
@@ -10,6 +15,7 @@ class UserMusicCard extends StatelessWidget {
   final VoidCallback onToggleVisibility;
   final VoidCallback onDelete;
   final VoidCallback onDownload; 
+
 
 
   const UserMusicCard({
@@ -28,6 +34,7 @@ class UserMusicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
@@ -101,7 +108,7 @@ class UserMusicCard extends StatelessWidget {
                     icon: const Icon(Icons.download, color: Colors.blue),
                     onPressed: () {
                       // Função de download do PDF
-                      _downloadPdf(id);
+                      _downloadContrato(context, this.id);
                     },
                   ),
                   IconButton(
@@ -117,8 +124,62 @@ class UserMusicCard extends StatelessWidget {
     );
   }
 
-  void _downloadPdf(int id) {
-    // Lógica para baixar o PDF associado ao ID da música
-    print("Download do PDF para a música com ID: $id");
+
+
+ 
+  Future<void> _downloadContrato(BuildContext context, int obra) async {
+  try {
+    final supabase = Supabase.instance.client;
+
+    // Realiza a consulta no Supabase
+    final response = await supabase
+        .from('obra')
+        .select('comprovante') // Certifique-se de que a coluna existe
+        .eq('id', obra)     // Filtra pela ID fornecida
+        .maybeSingle();     // Retorna apenas um registro ou `null`
+
+    // Verifica se houve resultado na consulta
+    if (response == null) {
+      showExceptionCustomDialog(context, 'Comprovante não encontrado para a obra $obra.');
+      return;
+    }
+
+    // Acessa o valor da chave "contrato"
+    final comprovante = response?['comprovante'] as String?;
+    if (comprovante == null) {
+       showExceptionCustomDialog(context, 'Comprovante não disponível para a obra $obra.');
+       return;
+    }
+
+    // Gera o PDF e compartilha
+    final pdfBytes = await _generatePdfComprovante(comprovante);
+    await Printing.sharePdf(
+      bytes: Uint8List.fromList(pdfBytes),
+      filename: 'comprovante.pdf',
+    );
+  } catch (e) {
+    // Mostra um erro no SnackBar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erro ao baixar Comprovante: $e')),
+    );
+  }
+}
+
+
+  Future<List<int>> _generatePdfComprovante(String? contrato) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) => pw.Center(
+          child: pw.Text(
+            contrato.toString(),
+            style: pw.TextStyle(fontSize: 18),
+          ),
+        ),
+      ),
+    );
+
+    return pdf.save();
   }
 }

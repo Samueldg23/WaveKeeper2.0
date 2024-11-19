@@ -29,9 +29,9 @@ class _SalesPageState extends State<SalesPage> {
     try {
       final response = await supabase
           .from('transacao')
-          .select('id_obra, contrato')
+          .select('id_obra, contrato, id_vendedor, id_comprador')
           .or('id_comprador.eq.${widget.userId},id_vendedor.eq.${widget.userId}');
-
+          
       List<dynamic> data = response;
 
       final List<Map<String, dynamic>> vendasList = [];

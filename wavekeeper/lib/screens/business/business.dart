@@ -27,15 +27,17 @@ class _BusinessViewState extends State<BusinessView> {
       final response = await supabase
           .from('transacao')
           .select('id, id_obra, id_comprador')
+          .eq('id_comprador', widget.userId)
           .eq('status', false);
 
       List<Map<String, dynamic>> loadedTransactions = [];
       for (final transaction in response) {
         final obraResponse = await supabase
             .from('obra')
-            .select('id, capa_url, titulo, preco, id_vendedor')
+            .select('id, capa_url, titulo, preco, id_usuario')
             .eq('id', transaction['id_obra'])
             .single();
+
 
         loadedTransactions.add({
           'transactionId': transaction['id'],
@@ -44,7 +46,7 @@ class _BusinessViewState extends State<BusinessView> {
           'songName': obraResponse['titulo'],
           'price': obraResponse['preco'],
           'idComprador': transaction['id_comprador'],
-          'idVendedor': transaction['id_vendedor'],
+          'idVendedor': transaction['id_vendedor'].toString(),
         });
             }
 
