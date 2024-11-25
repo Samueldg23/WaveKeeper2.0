@@ -131,6 +131,7 @@ String? _selectedCategory;
         return;
       }
  try {
+   final String now = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
       // Inserir os dados da obra
       final obraResponse = await supabase.from('obra').insert({
         'id_usuario': widget.userId,
@@ -139,6 +140,7 @@ String? _selectedCategory;
         'audio_url': uploadedAudioUrl,
         'capa_url': uploadedImageUrl,
         'categoria': categoria,
+        'criada_em': now,
         'ativo': true,
       }).select('id, audio_url, capa_url, criada_em, id_usuario').single();
 
@@ -153,7 +155,6 @@ String? _selectedCategory;
           .single();
 
       // Criar comprovante de upload
-      final String now = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
       final String comprovante = '''
         Comprovante de Upload:
         Usuário: ${usuarioData['nome']}
@@ -169,6 +170,7 @@ String? _selectedCategory;
       // Atualizar a coluna comprovante na tabela obra
       await supabase.from('obra').update({
         'comprovante': comprovante,
+      
       }).eq('id', obraId);
 
       print('Comprovante de upload salvo com sucesso!');
